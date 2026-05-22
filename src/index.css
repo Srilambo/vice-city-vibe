@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Pinyon+Script&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -13,8 +14,6 @@
   --color-orange: #f97316;
   --color-deep-purple: #1a0b2e;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Pinyon+Script&display=swap');
 
 :root {
   --bg: #1a0b2e;
