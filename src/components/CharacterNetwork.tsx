@@ -4,6 +4,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CHARACTERS } from '../data';
 import { playHover } from '../utils/audio';
 
+interface CharacterNetworkProps {
+  lowDataMode: boolean;
+}
+
 interface Node extends d3.SimulationNodeDatum {
   id: string;
   name: string;
@@ -18,7 +22,7 @@ interface Link extends d3.SimulationLinkDatum<Node> {
   label: string;
 }
 
-export function CharacterNetwork() {
+export function CharacterNetwork({ lowDataMode }: CharacterNetworkProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [hoveredLink, setHoveredLink] = useState<Link | null>(null);
@@ -102,25 +106,27 @@ export function CharacterNetwork() {
       .attr('stroke-width', 3)
       .style('filter', 'url(#glow)');
 
-    // Add images to nodes
+    // Add optional image patterns for richer node visuals only when network is not constrained
     const defs = svg.append('defs');
-    nodes.forEach(n => {
-      if (n.image) {
-        defs.append('pattern')
-          .attr('id', `pattern-${n.id}`)
-          .attr('patternUnits', 'objectBoundingBox')
-          .attr('width', 1)
-          .attr('height', 1)
-          .append('image')
-          .attr('xlink:href', n.image)
-          .attr('width', 50)
-          .attr('height', 50)
-          .attr('preserveAspectRatio', 'xMidYMid slice');
-      }
-    });
+    if (!lowDataMode) {
+      nodes.forEach(n => {
+        if (n.image) {
+          defs.append('pattern')
+            .attr('id', `pattern-${n.id}`)
+            .attr('patternUnits', 'objectBoundingBox')
+            .attr('width', 1)
+            .attr('height', 1)
+            .append('image')
+            .attr('xlink:href', n.image)
+            .attr('width', 50)
+            .attr('height', 50)
+            .attr('preserveAspectRatio', 'xMidYMid slice');
+        }
+      });
+    }
 
     node.select('circle')
-      .attr('fill', d => d.image ? `url(#pattern-${d.id})` : '#1a103c');
+      .attr('fill', d => (!lowDataMode && d.image) ? `url(#pattern-${d.id})` : '#1a103c');
 
     // Add names below nodes
     node.append('text')

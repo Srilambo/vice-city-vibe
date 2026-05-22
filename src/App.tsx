@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, useScroll, useSpring } from 'motion/react';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Maximize2, Users, BookOpen, Skull, Zap, Info, Swords, Shield, Target, Star, Volume2, VolumeX } from 'lucide-react';
 import { CHARACTERS, ACTS, MISSIONS, CHEATS, SCENES_CONFIG, GANGS } from './data';
 import { ViceCityMap } from './components/ViceCityMap';
@@ -22,6 +22,15 @@ export default function App() {
   const [favoriteCheats, setFavoriteCheats] = useState<string[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
   const [muted, setMuted] = useState(isAudioMuted());
+  const [lowDataMode, setLowDataMode] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  const imageLoading = lowDataMode ? 'lazy' : 'eager';
+  const imageFetchPriority = lowDataMode ? 'low' : 'auto';
+  const transitionDuration = lowDataMode ? 0.2 : 0.4;
+  const sceneTransition = lowDataMode ? { duration: 0.35, ease: 'easeOut' as const } : { duration: 1.2, ease: 'easeOut' as const };
+
+  const reducedMotionEnabled = prefersReducedMotion || lowDataMode;
 
   // Image-by-Image (i-by-i) Lightbox State
   const [lightbox, setLightbox] = useState<{
@@ -55,6 +64,22 @@ export default function App() {
   const closeLightbox = useCallback(() => {
     setLightbox(null);
     playClick();
+  }, []);
+
+  useEffect(() => {
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const effectiveType = connection?.effectiveType;
+    const saveData = connection?.saveData;
+
+    setLowDataMode(Boolean(saveData || effectiveType?.includes('2g') || effectiveType?.includes('slow-2g') || effectiveType?.includes('3g')));
+    setPrefersReducedMotion(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
+
+    const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const handleMotionChange = (event: MediaQueryListEvent) => setPrefersReducedMotion(event.matches);
+    mediaQuery?.addEventListener?.('change', handleMotionChange);
+    return () => {
+      mediaQuery?.removeEventListener?.('change', handleMotionChange);
+    };
   }, []);
 
   // Keyboard navigation for image-by-image lightbox view
@@ -208,6 +233,11 @@ export default function App() {
       onTouchEnd={handleTouchEnd}
       className="relative h-screen w-screen overflow-hidden bg-black font-sans text-white selection:bg-pink selection:text-white"
     >
+      {lowDataMode && (
+        <div className="fixed inset-x-4 top-4 z-50 rounded-3xl border border-white/10 bg-black/80 px-4 py-3 text-center text-[11px] text-white/80 backdrop-blur-xl shadow-lg">
+          Low data mode enabled — animations are reduced and images load lazily for a smoother experience.
+        </div>
+      )}
       {/* Retro Audio Control button fixed in top right */}
       <div className="fixed top-6 right-6 lg:top-8 lg:right-16 z-55 flex items-center gap-3">
         <button
@@ -250,6 +280,9 @@ export default function App() {
             <img 
               src={SCENES_CONFIG[currentScene].bgImage} 
               alt="background" 
+              loading={imageLoading}
+              decoding="async"
+              fetchPriority={imageFetchPriority}
               className="h-full w-full object-cover grayscale-[25%] brightness-[38%] contrast-[122%]"
               referrerPolicy="no-referrer"
             />
@@ -506,6 +539,9 @@ export default function App() {
                     <img
                       src={lightbox.images[lightbox.index].src}
                       alt={lightbox.images[lightbox.index].title}
+                      loading={imageLoading}
+                      decoding="async"
+                      fetchPriority={imageFetchPriority}
                       className="max-h-full max-w-full object-contain saturate-[110%] contrast-[105%]"
                       referrerPolicy="no-referrer"
                     />
@@ -649,7 +685,7 @@ function CharacterScene({
                 }`}
               >
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-white/20">
-                  <img src={char.image} className="h-full w-full object-cover saturate-[110%]" />
+                  <img src={char.image} loading={imageLoading} decoding="async" fetchPriority={imageFetchPriority} className="h-full w-full object-cover saturate-[110%]" />
                   {selectedCharId === char.id && (
                     <div className="absolute inset-0 bg-pink/20 animate-pulse" />
                   )}
@@ -688,6 +724,9 @@ function CharacterScene({
                 >
                   <img 
                     src={selectedChar.image} 
+                    loading={imageLoading}
+                    decoding="async"
+                    fetchPriority={imageFetchPriority}
                     className="h-full w-full object-cover object-[center_14%] saturate-[115%] contrast-[105%]"
                     referrerPolicy="no-referrer"
                   />
@@ -847,6 +886,9 @@ function CharacterScene({
                 <img 
                   src={char.image} 
                   alt={char.name}
+                  loading={imageLoading}
+                  decoding="async"
+                  fetchPriority={imageFetchPriority}
                   className="h-full w-full object-cover object-[center_14%] saturate-[110%] contrast-[105%] transition-transform duration-700 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />
@@ -962,7 +1004,7 @@ function CharacterScene({
            <span className="font-mono text-[9px] sm:text-[10px] tracking-[4px] sm:tracking-[6px] text-cyan uppercase font-bold text-shadow-glow">Strategic Network Analysis</span>
         </div>
         <div className="px-1 sm:px-4 overflow-hidden">
-          <CharacterNetwork />
+          <CharacterNetwork lowDataMode={lowDataMode} />
         </div>
       </div>
     </div>
@@ -1037,6 +1079,9 @@ function GangScene({
                       <img 
                         src={gang.image} 
                         alt={gang.name} 
+                        loading={imageLoading}
+                        decoding="async"
+                        fetchPriority={imageFetchPriority}
                         className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105 saturate-[110%]"
                         referrerPolicy="no-referrer"
                       />
@@ -1195,6 +1240,9 @@ function GangScene({
                      <img 
                        src={activeGang.image} 
                        alt={activeGang.name} 
+                       loading={imageLoading}
+                       decoding="async"
+                       fetchPriority={imageFetchPriority}
                        className="h-full w-full object-contain transition-transform duration-1000 group-hover:scale-105 saturate-[110%]"
                        referrerPolicy="no-referrer"
                      />
@@ -1362,6 +1410,9 @@ function MissionScene({
                 <img 
                   src={mission.image} 
                   alt={mission.title} 
+                  loading={imageLoading}
+                  decoding="async"
+                  fetchPriority={imageFetchPriority}
                   className="h-full w-full object-cover object-[center_20%] transition-transform duration-700 hover:scale-105 saturate-[110%]"
                   referrerPolicy="no-referrer"
                 />
@@ -1599,6 +1650,9 @@ function HeroScene({ onStart }: { onStart: () => void }) {
         <img 
           src="/src/assets/images/vice_city_collage_hero_1779187868741.png" 
           alt="Collage Background" 
+          loading={imageLoading}
+          decoding="async"
+          fetchPriority={imageFetchPriority}
           className="h-full w-full object-cover scale-100"
           referrerPolicy="no-referrer"
         />
