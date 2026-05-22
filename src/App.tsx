@@ -384,6 +384,7 @@ export default function App() {
             {currentScene === 1 && (
               <CharacterScene 
                 readCharacters={readCharacters}
+                lowDataMode={lowDataMode}
                 imageLoading={imageLoading}
                 imageFetchPriority={imageFetchPriority}
                 onToggleRead={(id) => {
@@ -643,12 +644,14 @@ function CharacterScene({
   onViewImage,
   imageLoading,
   imageFetchPriority,
+  lowDataMode,
 }: { 
   readCharacters: string[]; 
   onToggleRead: (id: string) => void;
   onViewImage?: (index: number) => void;
   imageLoading: 'lazy' | 'eager';
   imageFetchPriority: 'low' | 'auto';
+  lowDataMode: boolean;
 }) {
   const [selectedCharId, setSelectedCharId] = useState(CHARACTERS[0].id);
   const selectedChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
