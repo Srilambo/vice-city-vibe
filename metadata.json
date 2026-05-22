@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Vice City: The Ultimate Guide",
+  "description": "An immersive, neon-soaked interactive portal for everything GTA Vice City - characters, story, missions, and cheats with premium zoom-based navigation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
