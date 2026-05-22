@@ -374,12 +374,18 @@ export default function App() {
         <AnimatePresence mode="popLayout">
           <SceneContainer key={currentScene}>
             {currentScene === 0 && (
-              <HeroScene onStart={() => goToScene(1)} />
+              <HeroScene 
+                onStart={() => goToScene(1)}
+                imageLoading={imageLoading}
+                imageFetchPriority={imageFetchPriority}
+              />
             )}
 
             {currentScene === 1 && (
               <CharacterScene 
                 readCharacters={readCharacters}
+                imageLoading={imageLoading}
+                imageFetchPriority={imageFetchPriority}
                 onToggleRead={(id) => {
                   if (readCharacters.includes(id)) {
                     setReadCharacters(readCharacters.filter(x => x !== id));
@@ -405,6 +411,8 @@ export default function App() {
             {currentScene === 2 && (
               <GangScene 
                 securedTerritories={securedTerritories}
+                imageLoading={imageLoading}
+                imageFetchPriority={imageFetchPriority}
                 onToggleSecured={(id) => {
                   if (securedTerritories.includes(id)) {
                     setSecuredTerritories(securedTerritories.filter(x => x !== id));
@@ -433,6 +441,8 @@ export default function App() {
             {currentScene === 4 && (
               <MissionScene 
                 completedMissions={completedMissions}
+                imageLoading={imageLoading}
+                imageFetchPriority={imageFetchPriority}
                 onToggleCompleted={(id) => {
                   if (completedMissions.includes(id)) {
                     setCompletedMissions(completedMissions.filter(x => x !== id));
@@ -630,11 +640,15 @@ function StatItem({ label, value, color }: { label: string; value: string; color
 function CharacterScene({ 
   readCharacters = [], 
   onToggleRead,
-  onViewImage 
+  onViewImage,
+  imageLoading,
+  imageFetchPriority,
 }: { 
   readCharacters: string[]; 
   onToggleRead: (id: string) => void;
   onViewImage?: (index: number) => void;
+  imageLoading: 'lazy' | 'eager';
+  imageFetchPriority: 'low' | 'auto';
 }) {
   const [selectedCharId, setSelectedCharId] = useState(CHARACTERS[0].id);
   const selectedChar = CHARACTERS.find(c => c.id === selectedCharId) || CHARACTERS[0];
@@ -1014,11 +1028,15 @@ function CharacterScene({
 function GangScene({ 
   securedTerritories = [], 
   onToggleSecured,
-  onViewImage 
+  onViewImage,
+  imageLoading,
+  imageFetchPriority,
 }: { 
   securedTerritories: string[]; 
   onToggleSecured: (id: string) => void;
   onViewImage?: (index: number) => void;
+  imageLoading: 'lazy' | 'eager';
+  imageFetchPriority: 'low' | 'auto';
 }) {
   const [hoveredGangId, setHoveredGangId] = useState<string | null>(null);
   const [selectedGangId, setSelectedGangId] = useState(GANGS[0].id);
@@ -1363,11 +1381,15 @@ function StoryScene() {
 function MissionScene({ 
   completedMissions = [], 
   onToggleCompleted,
-  onViewImage 
+  onViewImage,
+  imageLoading,
+  imageFetchPriority,
 }: { 
   completedMissions: string[]; 
   onToggleCompleted: (id: string) => void;
   onViewImage?: (index: number) => void;
+  imageLoading: 'lazy' | 'eager';
+  imageFetchPriority: 'low' | 'auto';
 }) {
   return (
     <div className="w-full">
@@ -1637,7 +1659,7 @@ function SectionHeader({ label, title, sub }: { label: string; title: string; su
   );
 }
 
-function HeroScene({ onStart }: { onStart: () => void }) {
+function HeroScene({ onStart, imageLoading, imageFetchPriority }: { onStart: () => void; imageLoading: 'lazy' | 'eager'; imageFetchPriority: 'low' | 'auto'; }) {
   return (
     <div className="relative flex min-h-[75vh] py-6 sm:py-10 md:py-12 w-full flex-col items-center justify-center overflow-hidden">
       {/* Background Collage Overlay */}
